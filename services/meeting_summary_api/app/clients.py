@@ -7,6 +7,15 @@ import httpx
 
 from .settings import Settings
 
+_HEALTH_TIMEOUT = httpx.Timeout(10.0, connect=5.0)
+
+
+def _make_timeout(settings: Settings) -> httpx.Timeout:
+    return httpx.Timeout(
+        timeout=settings.http_timeout_seconds,
+        connect=30.0,
+    )
+
 
 class ServiceClientError(RuntimeError):
     pass
@@ -15,12 +24,10 @@ class ServiceClientError(RuntimeError):
 class GigaAMClient:
     def __init__(self, settings: Settings):
         self.settings = settings
+        self._client = httpx.AsyncClient(timeout=_make_timeout(settings))
 
-    def _timeout(self) -> httpx.Timeout:
-        return httpx.Timeout(
-            timeout=self.settings.http_timeout_seconds,
-            connect=30.0,
-        )
+    async def close(self) -> None:
+        await self._client.aclose()
 
     async def transcribe_file(
         self,
@@ -35,16 +42,15 @@ class GigaAMClient:
             "enhance_audio_mode": enhance_audio_mode,
         }
 
-        async with httpx.AsyncClient(timeout=self._timeout()) as client:
-            with file_path.open("rb") as file_handle:
-                files = {
-                    "file": (
-                        original_filename,
-                        file_handle,
-                        "application/octet-stream",
-                    )
-                }
-                response = await client.post(url, data=data, files=files)
+        with file_path.open("rb") as file_handle:
+            files = {
+                "file": (
+                    original_filename,
+                    file_handle,
+                    "application/octet-stream",
+                )
+            }
+            response = await self._client.post(url, data=data, files=files)
 
         if response.status_code >= 400:
             raise ServiceClientError(
@@ -59,8 +65,7 @@ class GigaAMClient:
 
     async def health(self) -> dict[str, Any]:
         url = f"{self.settings.gigaam_api_base_url}/health"
-        async with httpx.AsyncClient(timeout=httpx.Timeout(10.0, connect=5.0)) as client:
-            response = await client.get(url)
+        response = await self._client.get(url, timeout=_HEALTH_TIMEOUT)
 
         if response.status_code >= 400:
             raise ServiceClientError(
@@ -75,12 +80,10 @@ class GigaAMClient:
 class VllmClient:
     def __init__(self, settings: Settings):
         self.settings = settings
+        self._client = httpx.AsyncClient(timeout=_make_timeout(settings))
 
-    def _timeout(self) -> httpx.Timeout:
-        return httpx.Timeout(
-            timeout=self.settings.http_timeout_seconds,
-            connect=30.0,
-        )
+    async def close(self) -> None:
+        await self._client.aclose()
 
     def _server_base_url(self) -> str:
         if self.settings.vllm_api_base_url.endswith("/v1"):
@@ -104,8 +107,7 @@ class VllmClient:
         if not self.settings.llm_enable_thinking:
             payload["chat_template_kwargs"] = {"enable_thinking": False}
 
-        async with httpx.AsyncClient(timeout=self._timeout()) as client:
-            response = await client.post(url, json=payload)
+        response = await self._client.post(url, json=payload)
 
         if response.status_code >= 400:
             raise ServiceClientError(
@@ -136,9 +138,8 @@ class VllmClient:
         health_url = f"{self._server_base_url()}/health"
         models_url = f"{self.settings.vllm_api_base_url}/models"
 
-        async with httpx.AsyncClient(timeout=httpx.Timeout(10.0, connect=5.0)) as client:
-            health_response = await client.get(health_url)
-            models_response = await client.get(models_url)
+        health_response = await self._client.get(health_url, timeout=_HEALTH_TIMEOUT)
+        models_response = await self._client.get(models_url, timeout=_HEALTH_TIMEOUT)
 
         if health_response.status_code >= 400:
             raise ServiceClientError(

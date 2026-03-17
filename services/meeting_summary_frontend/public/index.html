@@ -3,107 +3,211 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Audio Summary Console</title>
+    <title>Meeting Summary Console</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto+Condensed:wght@300;400;700&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <div class="backdrop" aria-hidden="true"></div>
+    <div class="page-atmosphere" aria-hidden="true">
+      <div class="backdrop"></div>
+      <div class="grid-overlay"></div>
+    </div>
+
     <main class="page-shell">
       <header class="hero">
-        <p class="hero-kicker">Meeting Summary Console</p>
-        <h1>Загрузите запись и получите готовое summary</h1>
-        <p class="hero-copy">
-          Интерфейс для длинных встреч: файл, фокус внимания и аккуратный итоговый
-          текст в одном окне.
-        </p>
+        <div class="hero-copy-block reveal reveal-1">
+          <div class="brand-line">
+            <span class="brand-mark">MS</span>
+            <p class="hero-kicker">Meeting Summary Console</p>
+          </div>
+
+          <h1>Длинная запись внутрь. Чистый итоговый текст на выходе.</h1>
+
+          <p class="hero-copy">
+            Рабочий интерфейс для длинных встреч, созвонов и разборов: загрузите
+            файл, при необходимости задайте фокус внимания и получите готовое
+            summary в одном экране.
+          </p>
+
+          <div class="hero-tags" aria-label="Ключевые возможности">
+            <span class="hero-tag">Аудио и видео</span>
+            <span class="hero-tag">Длинные встречи</span>
+            <span class="hero-tag">Кастомный фокус</span>
+            <span class="hero-tag">Готово для копирования</span>
+          </div>
+        </div>
+
+        <aside class="hero-card reveal reveal-2">
+          <div class="panel-head panel-head-compact">
+            <p class="eyebrow">Контур обработки</p>
+            <h2>Один экран для полного цикла</h2>
+          </div>
+
+          <ol class="hero-flow">
+            <li>
+              <span class="flow-index">01</span>
+              <div>
+                <strong>Загрузка записи</strong>
+                <p>Файл попадает в пайплайн транскрибации и суммаризации.</p>
+              </div>
+            </li>
+            <li>
+              <span class="flow-index">02</span>
+              <div>
+                <strong>Фокус внимания</strong>
+                <p>Можно оставить дефолтный prompt или задать свой сценарий.</p>
+              </div>
+            </li>
+            <li>
+              <span class="flow-index">03</span>
+              <div>
+                <strong>Обработка</strong>
+                <p>Текст разбивается на блоки и собирается в итоговый summary.</p>
+              </div>
+            </li>
+            <li>
+              <span class="flow-index">04</span>
+              <div>
+                <strong>Результат</strong>
+                <p>Ниже появляется чистый текст, который можно сразу скопировать.</p>
+              </div>
+            </li>
+          </ol>
+        </aside>
       </header>
 
-      <section class="top-grid">
-        <article class="panel upload-panel">
-          <div class="panel-head">
-            <p class="eyebrow">1. Файл</p>
-            <h2>Запись встречи</h2>
+      <section class="workspace">
+        <section class="top-grid">
+          <article class="panel upload-panel reveal reveal-2">
+            <div class="panel-head">
+              <p class="eyebrow">1. Файл</p>
+              <h2>Запись встречи</h2>
+              <p class="panel-copy">
+                Перетащите файл в зону загрузки или выберите его вручную.
+                Интерфейс рассчитан на длинные разговоры и плотные рабочие созвоны.
+              </p>
+            </div>
+
+            <label class="dropzone" id="dropzone" for="file-input">
+              <input id="file-input" class="file-input" type="file" />
+              <span class="dropzone-emblem" aria-hidden="true">UPLOAD</span>
+              <span class="dropzone-title">Перетащите запись сюда</span>
+              <span class="dropzone-copy">
+                или нажмите, чтобы выбрать файл с диска
+              </span>
+              <span class="dropzone-meta">Поддерживаются аудио- и видеофайлы</span>
+            </label>
+
+            <div class="file-summary-card">
+              <p class="file-summary-label">Текущий файл</p>
+              <div class="file-summary" id="file-summary">Пока ничего не выбрано</div>
+            </div>
+
+            <div class="action-row">
+              <button class="button button-secondary" id="pick-file-button" type="button">
+                Выбрать файл
+              </button>
+              <button class="button button-primary" id="submit-button" type="button">
+                Сформировать summary
+              </button>
+            </div>
+          </article>
+
+          <article class="panel prompt-panel reveal reveal-3">
+            <div class="panel-head">
+              <p class="eyebrow">2. Фокус</p>
+              <h2>На что обратить внимание</h2>
+              <p class="panel-copy">
+                Если нужен акцент на конкретных сущностях, суммах, документах,
+                рисках или задачах, задайте его здесь до запуска обработки.
+              </p>
+            </div>
+
+            <label class="field-label" for="prompt-textarea">
+              Сюда пишите, на что обращать внимание, например: цифры, документы,
+              поручения, риски
+            </label>
+
+            <textarea
+              id="prompt-textarea"
+              class="prompt-textarea"
+              placeholder="Например: выдели все суммы, названия документов, ответственных и сроки"
+            ></textarea>
+
+            <div class="hint-chip-row" aria-label="Примеры фокуса">
+              <span class="hint-chip">Цифры и суммы</span>
+              <span class="hint-chip">Документы</span>
+              <span class="hint-chip">Ответственные</span>
+              <span class="hint-chip">Сроки и риски</span>
+            </div>
+
+            <div class="prompt-toolbar">
+              <button class="button button-secondary" id="apply-prompt-button" type="button">
+                Применить фокус
+              </button>
+              <span class="prompt-status" id="prompt-status">
+                Сейчас используется дефолтный prompt
+              </span>
+            </div>
+
+            <div class="default-prompt-card">
+              <p class="default-prompt-label">Текущий дефолтный prompt</p>
+              <p class="default-prompt-text" id="default-prompt-text"></p>
+            </div>
+          </article>
+        </section>
+
+        <section class="status-strip panel reveal reveal-4" id="status-strip" aria-live="polite">
+          <div class="status-main">
+            <div class="status-indicator">
+              <div class="spinner hidden" id="spinner" aria-hidden="true"></div>
+            </div>
+
+            <div class="status-copy-block">
+              <p class="status-title" id="status-title">Готово к запуску</p>
+              <p class="status-copy" id="status-copy">
+                Выберите файл, при необходимости задайте фокус и отправьте запись на
+                обработку.
+              </p>
+            </div>
           </div>
 
-          <label class="dropzone" id="dropzone" for="file-input">
-            <input id="file-input" class="file-input" type="file" />
-            <span class="dropzone-title">Перетащите файл сюда</span>
-            <span class="dropzone-copy">
-              или нажмите, чтобы выбрать запись с диска
-            </span>
-          </label>
-
-          <div class="file-summary" id="file-summary">
-            Пока ничего не выбрано
+          <div class="status-track" aria-hidden="true">
+            <span class="track-chip">Upload</span>
+            <span class="track-chip">ASR</span>
+            <span class="track-chip">Chunking</span>
+            <span class="track-chip">LLM</span>
+            <span class="track-chip">Summary</span>
           </div>
+        </section>
 
-          <div class="action-row">
-            <button class="button button-secondary" id="pick-file-button" type="button">
-              Выбрать файл
+        <section class="panel result-panel reveal reveal-5">
+          <div class="result-head">
+            <div>
+              <p class="eyebrow">3. Результат</p>
+              <h2>Итоговый текст</h2>
+              <p class="panel-copy panel-copy-tight">
+                После завершения обработки здесь появляется итоговое summary и
+                краткие метаданные по прогону.
+              </p>
+            </div>
+
+            <button class="button button-secondary" id="copy-button" type="button" disabled>
+              Скопировать
             </button>
-            <button class="button button-primary" id="submit-button" type="button">
-              Сформировать summary
-            </button>
-          </div>
-        </article>
-
-        <article class="panel prompt-panel">
-          <div class="panel-head">
-            <p class="eyebrow">2. Фокус</p>
-            <h2>На что обратить внимание</h2>
           </div>
 
-          <label class="field-label" for="prompt-textarea">
-            Сюда пишите, на что обращать внимание, например: цифры, документы,
-            поручения, риски
-          </label>
-          <textarea
-            id="prompt-textarea"
-            class="prompt-textarea"
-            placeholder="Например: выдели все суммы, названия документов, ответственных и сроки"
-          ></textarea>
+          <div class="meta-row" id="meta-row"></div>
 
-          <div class="prompt-toolbar">
-            <button class="button button-secondary" id="apply-prompt-button" type="button">
-              Применить фокус
-            </button>
-            <span class="prompt-status" id="prompt-status">
-              Сейчас используется дефолтный prompt
-            </span>
+          <div class="result-frame">
+            <pre class="result-box" id="result-box">Summary появится здесь после обработки файла.</pre>
           </div>
-
-          <div class="default-prompt-card">
-            <p class="default-prompt-label">Текущий дефолтный prompt</p>
-            <p class="default-prompt-text" id="default-prompt-text"></p>
-          </div>
-        </article>
-      </section>
-
-      <section class="status-strip panel" id="status-strip" aria-live="polite">
-        <div class="spinner hidden" id="spinner" aria-hidden="true"></div>
-        <div>
-          <p class="status-title" id="status-title">Готово к запуску</p>
-          <p class="status-copy" id="status-copy">
-            Выберите файл, при необходимости задайте фокус и отправьте запись на
-            обработку.
-          </p>
-        </div>
-      </section>
-
-      <section class="panel result-panel">
-        <div class="result-head">
-          <div>
-            <p class="eyebrow">3. Результат</p>
-            <h2>Итоговый текст</h2>
-          </div>
-          <button class="button button-secondary" id="copy-button" type="button" disabled>
-            Скопировать
-          </button>
-        </div>
-
-        <div class="meta-row" id="meta-row"></div>
-
-        <pre class="result-box" id="result-box">Summary появится здесь после обработки файла.</pre>
+        </section>
       </section>
     </main>
 
@@ -111,4 +215,3 @@
     <script type="module" src="./app.js"></script>
   </body>
 </html>
-

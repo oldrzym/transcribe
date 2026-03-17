@@ -51,6 +51,11 @@ async def startup_event() -> None:
     )
 
 
+@app.on_event("shutdown")
+async def shutdown_event() -> None:
+    await service.close()
+
+
 @app.get("/")
 async def root() -> dict:
     return {

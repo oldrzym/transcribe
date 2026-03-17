@@ -32,6 +32,10 @@ class MeetingSummaryService:
         self.gigaam_client = GigaAMClient(settings)
         self.vllm_client = VllmClient(settings)
 
+    async def close(self) -> None:
+        await self.gigaam_client.close()
+        await self.vllm_client.close()
+
     async def health(self) -> dict[str, Any]:
         gigaam_health = await self.gigaam_client.health()
         vllm_health = await self.vllm_client.health()

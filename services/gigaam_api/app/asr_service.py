@@ -9,7 +9,6 @@ import gigaam
 import numpy as np
 
 from .audio_io import (
-    audio_duration_seconds,
     convert_audio_for_asr,
     read_wav,
     write_wav,
@@ -147,7 +146,6 @@ class TranscriptionService:
             raw_wav = tmp_dir / "prepared_raw.wav"
             prepared_wav = raw_wav
             convert_audio_for_asr(source_path, raw_wav, enhance_audio=False)
-
             quality_assessment = self._assess_quality(raw_wav)
 
             enhance_audio_applied = False
@@ -172,7 +170,8 @@ class TranscriptionService:
                             "Automatic enhancement failed; raw audio was used instead."
                         )
 
-            total_duration = audio_duration_seconds(prepared_wav)
+            audio, sample_rate = read_wav(prepared_wav)
+            total_duration = float(len(audio)) / float(sample_rate) if sample_rate else 0.0
             if total_duration <= 0:
                 raise RuntimeError("Prepared audio is empty")
 
@@ -198,7 +197,6 @@ class TranscriptionService:
                     warnings=warnings,
                 )
 
-            audio, sample_rate = read_wav(prepared_wav)
             segments, chunking_mode, mode_warnings = self._build_segments(
                 prepared_wav=prepared_wav,
                 audio=audio,

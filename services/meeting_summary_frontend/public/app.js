@@ -27,6 +27,7 @@ const elements = {
   defaultPromptText: document.querySelector("#default-prompt-text"),
   submitButton: document.querySelector("#submit-button"),
   spinner: document.querySelector("#spinner"),
+  statusStrip: document.querySelector("#status-strip"),
   statusTitle: document.querySelector("#status-title"),
   statusCopy: document.querySelector("#status-copy"),
   resultBox: document.querySelector("#result-box"),
@@ -112,6 +113,14 @@ function render() {
   elements.copyButton.disabled = !state.resultText;
   elements.copyButton.textContent = state.copyLabel;
   elements.spinner.classList.toggle("hidden", !state.isLoading);
+  elements.dropzone.classList.toggle("has-file", Boolean(state.selectedFile));
+  elements.statusStrip.classList.toggle("is-loading", state.isLoading);
+  elements.statusStrip.classList.toggle("has-error", Boolean(state.errorText));
+  elements.statusStrip.classList.toggle(
+    "has-result",
+    Boolean(state.resultText) && !state.errorText
+  );
+  elements.statusStrip.setAttribute("aria-busy", state.isLoading ? "true" : "false");
 
   renderMeta(state.resultMeta);
   renderResult();
