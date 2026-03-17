@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.venv/
+models/
+work/
+app/__pycache__/
+service.env

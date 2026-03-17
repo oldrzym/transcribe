@@ -1,0 +1,140 @@
+services:
+  gigaam-api:
+    build:
+      context: ./services/gigaam_api
+      args:
+        PRELOAD_GIGAAM_MODEL: ${GIGAAM_MODEL:-v3_e2e_rnnt}
+    image: gigaam-transcription-api:latest
+    container_name: gigaam-transcription-api
+    env_file:
+      - ./services/gigaam_api/service.env
+    environment:
+      GIGAAM_MODEL: ${GIGAAM_MODEL:-v3_e2e_rnnt}
+      NVIDIA_VISIBLE_DEVICES: ${GIGAAM_GPU_DEVICE:-all}
+    ports:
+      - "${GIGAAM_API_PORT:-8080}:8080"
+    gpus: all
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - |
+          import json, urllib.request
+          data = json.load(urllib.request.urlopen("http://127.0.0.1:8080/health", timeout=5))
+          assert data.get("status") == "ok"
+          assert data.get("model_loaded") is True
+          assert data.get("vad_loaded") is True
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 180s
+    volumes:
+      # Model cache survives container recreation.
+      - gigaam_models:/models
+      # Temporary uploads and runtime work files survive restarts when needed.
+      - gigaam_work:/work
+    restart: unless-stopped
+
+  vllm-qwen:
+    build:
+      context: ./services/vllm_qwen
+      args:
+        VLLM_MODEL_REPO: ${VLLM_QWEN_MODEL_REPO:-Qwen/Qwen3-32B-AWQ}
+        VLLM_LOCAL_MODEL_DIR: /opt/models/qwen3-32b-awq
+    image: vllm-qwen3-32b-awq:latest
+    container_name: vllm-qwen
+    env_file:
+      - ./services/vllm_qwen/service.env
+    environment:
+      NVIDIA_VISIBLE_DEVICES: ${VLLM_GPU_DEVICE:-all}
+    ports:
+      - "${VLLM_QWEN_PORT:-8001}:8000"
+    ipc: host
+    gpus: all
+    healthcheck:
+      test:
+        - CMD
+        - python3
+        - -c
+        - |
+          import json, urllib.request
+          urllib.request.urlopen("http://127.0.0.1:8000/health", timeout=5).read()
+          data = json.load(urllib.request.urlopen("http://127.0.0.1:8000/v1/models", timeout=5))
+          assert isinstance(data.get("data"), list) and len(data["data"]) > 0
+      interval: 30s
+      timeout: 10s
+      retries: 20
+      start_period: 600s
+    command: >
+      /bin/sh -c "vllm serve $${VLLM_MODEL_PATH}
+      --host 0.0.0.0
+      --port 8000
+      --served-model-name $${VLLM_SERVED_MODEL_NAME}
+      --tensor-parallel-size $${VLLM_TENSOR_PARALLEL_SIZE}
+      --max-model-len $${VLLM_MAX_MODEL_LEN}
+      --gpu-memory-utilization $${VLLM_GPU_MEMORY_UTILIZATION}"
+    volumes:
+      # Runtime cache for compiled kernels and other vLLM artifacts.
+      - vllm_cache:/root/.cache/vllm
+    restart: unless-stopped
+
+  meeting-summary-api:
+    build:
+      context: ./services/meeting_summary_api
+    image: meeting-summary-api:latest
+    container_name: meeting-summary-api
+    env_file:
+      - ./services/meeting_summary_api/service.env
+    ports:
+      - "${MEETING_SUMMARY_API_PORT:-8082}:8080"
+    depends_on:
+      gigaam-api:
+        condition: service_healthy
+      vllm-qwen:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - |
+          import json, urllib.request
+          data = json.load(urllib.request.urlopen("http://127.0.0.1:8080/health", timeout=5))
+          assert data.get("status") == "ok"
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+    volumes:
+      # Temporary uploads for the orchestration layer.
+      - meeting_summary_work:/work
+    restart: unless-stopped
+
+  meeting-summary-web:
+    build:
+      context: ./services/meeting_summary_frontend
+    image: meeting-summary-web:latest
+    container_name: meeting-summary-web
+    env_file:
+      - ./services/meeting_summary_frontend/service.env
+    ports:
+      - "${MEETING_SUMMARY_WEB_PORT:-8083}:80"
+    depends_on:
+      meeting-summary-api:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - wget -q -O /dev/null http://127.0.0.1/ || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+volumes:
+  gigaam_models:
+  gigaam_work:
+  vllm_cache:
+  meeting_summary_work:

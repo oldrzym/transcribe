@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Audio Summary Console</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="backdrop" aria-hidden="true"></div>
+    <main class="page-shell">
+      <header class="hero">
+        <p class="hero-kicker">Meeting Summary Console</p>
+        <h1>Загрузите запись и получите готовое summary</h1>
+        <p class="hero-copy">
+          Интерфейс для длинных встреч: файл, фокус внимания и аккуратный итоговый
+          текст в одном окне.
+        </p>
+      </header>
+
+      <section class="top-grid">
+        <article class="panel upload-panel">
+          <div class="panel-head">
+            <p class="eyebrow">1. Файл</p>
+            <h2>Запись встречи</h2>
+          </div>
+
+          <label class="dropzone" id="dropzone" for="file-input">
+            <input id="file-input" class="file-input" type="file" />
+            <span class="dropzone-title">Перетащите файл сюда</span>
+            <span class="dropzone-copy">
+              или нажмите, чтобы выбрать запись с диска
+            </span>
+          </label>
+
+          <div class="file-summary" id="file-summary">
+            Пока ничего не выбрано
+          </div>
+
+          <div class="action-row">
+            <button class="button button-secondary" id="pick-file-button" type="button">
+              Выбрать файл
+            </button>
+            <button class="button button-primary" id="submit-button" type="button">
+              Сформировать summary
+            </button>
+          </div>
+        </article>
+
+        <article class="panel prompt-panel">
+          <div class="panel-head">
+            <p class="eyebrow">2. Фокус</p>
+            <h2>На что обратить внимание</h2>
+          </div>
+
+          <label class="field-label" for="prompt-textarea">
+            Сюда пишите, на что обращать внимание, например: цифры, документы,
+            поручения, риски
+          </label>
+          <textarea
+            id="prompt-textarea"
+            class="prompt-textarea"
+            placeholder="Например: выдели все суммы, названия документов, ответственных и сроки"
+          ></textarea>
+
+          <div class="prompt-toolbar">
+            <button class="button button-secondary" id="apply-prompt-button" type="button">
+              Применить фокус
+            </button>
+            <span class="prompt-status" id="prompt-status">
+              Сейчас используется дефолтный prompt
+            </span>
+          </div>
+
+          <div class="default-prompt-card">
+            <p class="default-prompt-label">Текущий дефолтный prompt</p>
+            <p class="default-prompt-text" id="default-prompt-text"></p>
+          </div>
+        </article>
+      </section>
+
+      <section class="status-strip panel" id="status-strip" aria-live="polite">
+        <div class="spinner hidden" id="spinner" aria-hidden="true"></div>
+        <div>
+          <p class="status-title" id="status-title">Готово к запуску</p>
+          <p class="status-copy" id="status-copy">
+            Выберите файл, при необходимости задайте фокус и отправьте запись на
+            обработку.
+          </p>
+        </div>
+      </section>
+
+      <section class="panel result-panel">
+        <div class="result-head">
+          <div>
+            <p class="eyebrow">3. Результат</p>
+            <h2>Итоговый текст</h2>
+          </div>
+          <button class="button button-secondary" id="copy-button" type="button" disabled>
+            Скопировать
+          </button>
+        </div>
+
+        <div class="meta-row" id="meta-row"></div>
+
+        <pre class="result-box" id="result-box">Summary появится здесь после обработки файла.</pre>
+      </section>
+    </main>
+
+    <script src="./config.js"></script>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
+
